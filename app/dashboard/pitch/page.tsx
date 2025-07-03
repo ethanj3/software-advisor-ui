@@ -36,10 +36,10 @@ export default function PitchPage() {
       const resp = respRows?.[0] ?? null
       setClientResponse(resp)
 
-      const query = Object.entries(resp || {})
-        .filter(([k]) => k.startsWith('q') || k === 'desired_integrations')
-        .map(([_k, v]) => Array.isArray(v) ? v.join(' ') : v)
-        .join(' ')
+     const query = Object.entries(resp || {})
+  .filter(([k]) => k.startsWith('q') || k === 'desired_integrations')
+  .map(([, v]) => Array.isArray(v) ? v.join(' ') : v)
+  .join(' ')
 
       const { data: recs } = await supabase.rpc('fts_search_platforms', { query })
 

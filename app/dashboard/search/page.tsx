@@ -115,10 +115,13 @@ export default function SearchPage() {
 
     const terms = Object.values(answers).filter(Boolean).join(' ')
 
-    const recs = await supabase
-      .rpc('fts_search_platforms', { query: terms })
-      .then(r => r.data || [])
-      .catch(() => [])
+    let recs = []
+    try {
+      const { data } = await supabase.rpc('fts_search_platforms', { query: terms })
+      recs = data || []
+    } catch {
+      recs = []
+    }
 
     const chosen =
       recs.length > 0

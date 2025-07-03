@@ -4,32 +4,79 @@ import { useState } from 'react'
 import { supabase } from '@/utils/supabase/client'
 
 const SEARCH_QUESTIONS = [
-  { key: 'project_goals', label: '1. What are the primary financial and operational goals you hope to achieve from this engagement?' },
-  { key: 'critical_deadlines', label: '2. Are there critical deadlines or upcoming audits we need to align with?' },
-  { key: 'core_systems', label: '3. Which core systems do you currently use (e.g., accounting, CRM, payroll, inventory), and which are most critical for daily accuracy?' },
-  { key: 'system_drivers', label: '3a. What was the driver behind adopting each system and how long has it been in place?' },
-  { key: 'outdated_systems', label: '4. Are there any systems you feel are outdated or ineffective?' },
-  { key: 'data_sharing', label: '5. How do your systems currently share data (e.g., APIs, exports/imports)? Where do you experience issues or manual workarounds?' },
-  { key: 'roles_governance', label: '6. Who manages user roles, permissions, and system data governance?' },
-  { key: 'power_users', label: '7. Who are the primary experts or power-users we should involve for insights and feedback?' },
-  { key: 'process_improvement', label: '8. What key financial process do you believe needs the most improvement (e.g., month-end close, AP/AR)?' },
-  { key: 'manual_steps', label: '9. Which steps within that process are heavily manual or error-prone?' },
-  { key: 'exception_handling', label: '10. How are exceptions, errors, or discrepancies typically handled?' },
-  { key: 'pain_points', label: '11. Which system inefficiencies or recurring issues cause the greatest frustration or delays?' },
-  { key: 'manual_tasks', label: '12. What manual tasks or reconciliations do you most want automated or streamlined?' },
-  { key: 'critical_reports', label: '13. Which critical reports or metrics do you depend on most, and what data issues (if any) impact their accuracy or timeliness?' },
-  { key: 'missing_insights', label: '14. Are there key metrics or insights you currently lack visibility into?' },
-  { key: 'training_support', label: '15. How are users trained or onboarded to new systems or as new hires?' }
+  {
+    key: 'project_goals',
+    label: '1. What are the primary financial and operational goals you hope to achieve from this engagement?'
+  },
+  {
+    key: 'critical_deadlines',
+    label: '2. Are there critical deadlines or upcoming audits we need to align with?'
+  },
+  {
+    key: 'core_systems',
+    label: '3. Which core systems do you currently use (e.g., accounting, CRM, payroll, inventory), and which are most critical for daily accuracy?'
+  },
+  {
+    key: 'system_drivers',
+    label: '3a. What was the driver behind adopting each system and how long has it been in place?'
+  },
+  {
+    key: 'outdated_systems',
+    label: '4. Are there any systems you feel are outdated or ineffective?'
+  },
+  {
+    key: 'data_sharing',
+    label: '5. How do your systems currently share data (e.g., APIs, exports/imports)? Where do you experience issues or manual workarounds?'
+  },
+  {
+    key: 'roles_governance',
+    label: '6. Who manages user roles, permissions, and system data governance?'
+  },
+  {
+    key: 'power_users',
+    label: '7. Who are the primary experts or power-users we should involve for insights and feedback?'
+  },
+  {
+    key: 'process_improvement',
+    label: '8. What key financial process do you believe needs the most improvement (e.g., month-end close, AP/AR)?'
+  },
+  {
+    key: 'manual_steps',
+    label: '9. Which steps within that process are heavily manual or error-prone?'
+  },
+  {
+    key: 'exception_handling',
+    label: '10. How are exceptions, errors, or discrepancies typically handled?'
+  },
+  {
+    key: 'pain_points',
+    label: '11. Which system inefficiencies or recurring issues cause the greatest frustration or delays?'
+  },
+  {
+    key: 'manual_tasks',
+    label: '12. What manual tasks or reconciliations do you most want automated or streamlined?'
+  },
+  {
+    key: 'critical_reports',
+    label: '13. Which critical reports or metrics do you depend on most, and what data issues (if any) impact their accuracy or timeliness?'
+  },
+  {
+    key: 'missing_insights',
+    label: '14. Are there key metrics or insights you currently lack visibility into?'
+  },
+  {
+    key: 'training_support',
+    label: '15. How are users trained or onboarded to new systems or as new hires?'
+  },
 ]
 
 export default function SearchPage() {
-  const [answers, setAnswers] = useState<Record<string, string>>(
+  const [answers, setAnswers] = useState(
     SEARCH_QUESTIONS.reduce((acc, q) => {
       acc[q.key] = ''
       return acc
     }, {} as Record<string, string>)
   )
-
   const [suggestion, setSuggestion] = useState<string | null>(null)
   const [pitch, setPitch] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -50,13 +97,12 @@ export default function SearchPage() {
 
     const terms = Object.values(answers).filter(Boolean).join(' ')
 
-    let recs = await supabase
+    const recs = await supabase
       .rpc('fts_search_platforms', { query: terms })
       .then(r => r.data || [])
       .catch(() => [])
 
-    const chosen = recs.length > 0 ? (recs[0] as { name: string }).name : 'QuickBooks Online'
-
+    const chosen = recs.length > 0 ? (recs[0] as any).name : 'QuickBooks Online'
     setSuggestion(chosen)
 
     try {
@@ -65,15 +111,12 @@ export default function SearchPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ suggestion: chosen }),
       })
+
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || 'API error')
       setPitch(json.pitch)
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message)
-      } else {
-        setError('An unknown error occurred.')
-      }
+    } catch (err: any) {
+      setError(err.message)
     } finally {
       setLoading(false)
     }

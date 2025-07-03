@@ -15,7 +15,7 @@ interface Platform {
 export default function PitchPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [clientResponse, setClientResponse] = useState<Record<string, any> | null>(null)
+  const [clientResponse, setClientResponse] = useState<Record<string, unknown> | null>(null)
   const [recommendations, setRecommendations] = useState<Platform[]>([])
   const [accepted, setAccepted] = useState<Record<number, boolean>>({})
   const [pitch, setPitch] = useState<string>('')
@@ -25,20 +25,19 @@ export default function PitchPage() {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) return router.push('/login')
 
-      // 1) fetch latest client response
       const { data: respRows } = await supabase
         .from('client_responses')
         .select('*')
         .eq('submitted_by', session.user.id)
         .order('created_at', { ascending: false })
         .limit(1)
+
       const resp = respRows?.[0] ?? null
       setClientResponse(resp)
 
-      // 2) fetch recommendations via FTS
       const query = Object.entries(resp || {})
         .filter(([k]) => k.startsWith('q') || k === 'desired_integrations')
-        .map(([_, v]) => Array.isArray(v) ? v.join(' ') : v)
+        .map(([, v]) => Array.isArray(v) ? v.join(' ') : v)
         .join(' ')
 
       const { data: recs } = await supabase
@@ -47,7 +46,6 @@ export default function PitchPage() {
       const list = recs || []
       setRecommendations(list)
 
-      // 3) default all to accepted=true
       const initMap: Record<number, boolean> = {}
       list.forEach((p: Platform) => {
         initMap[p.id] = true
@@ -56,12 +54,12 @@ export default function PitchPage() {
 
       setLoading(false)
     }
+
     loadData()
   }, [router])
 
   const handleGenerate = async () => {
     setLoading(true)
-    // filter only those marked “Yes”
     const chosen = recommendations.filter(p => accepted[p.id])
 
     const res = await fetch('/api/generate-pitch', {
@@ -69,6 +67,7 @@ export default function PitchPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ clientResponse, recommendations: chosen })
     })
+
     const { pitch: text } = await res.json()
     setPitch(text)
     setLoading(false)

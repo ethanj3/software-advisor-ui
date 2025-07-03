@@ -38,7 +38,7 @@ export default function PitchPage() {
 
       const query = Object.entries(resp || {})
         .filter(([k]) => k.startsWith('q') || k === 'desired_integrations')
-        .map((/* ignored */, v]) => Array.isArray(v) ? v.join(' ') : v)
+        .map(([_k, v]) => Array.isArray(v) ? v.join(' ') : v)
         .join(' ')
 
       const { data: recs } = await supabase.rpc('fts_search_platforms', { query })

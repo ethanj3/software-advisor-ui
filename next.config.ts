@@ -5,3 +5,16 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+// next.config.js
+module.exports = {
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/login',
+        permanent: false, // use true if you want a permanent 301 redirect
+      },
+    ]
+  },
+}

@@ -1,5 +1,7 @@
 'use client'
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase/client'
@@ -15,7 +17,7 @@ interface Platform {
 export default function PitchPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [clientResponse, setClientResponse] = useState<Record<string, unknown> | null>(null)
+  const [clientResponse, setClientResponse] = useState<Record<string, any> | null>(null)
   const [recommendations, setRecommendations] = useState<Platform[]>([])
   const [accepted, setAccepted] = useState<Record<number, boolean>>({})
   const [pitch, setPitch] = useState<string>('')
@@ -31,17 +33,15 @@ export default function PitchPage() {
         .eq('submitted_by', session.user.id)
         .order('created_at', { ascending: false })
         .limit(1)
-
       const resp = respRows?.[0] ?? null
       setClientResponse(resp)
 
       const query = Object.entries(resp || {})
         .filter(([k]) => k.startsWith('q') || k === 'desired_integrations')
-        .map(([, v]) => Array.isArray(v) ? v.join(' ') : v)
+        .map(([_, v]) => Array.isArray(v) ? v.join(' ') : v)
         .join(' ')
 
-      const { data: recs } = await supabase
-        .rpc('fts_search_platforms', { query })
+      const { data: recs } = await supabase.rpc('fts_search_platforms', { query })
 
       const list = recs || []
       setRecommendations(list)
@@ -54,7 +54,6 @@ export default function PitchPage() {
 
       setLoading(false)
     }
-
     loadData()
   }, [router])
 
@@ -67,7 +66,6 @@ export default function PitchPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ clientResponse, recommendations: chosen })
     })
-
     const { pitch: text } = await res.json()
     setPitch(text)
     setLoading(false)
